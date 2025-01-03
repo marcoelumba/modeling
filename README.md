@@ -11,7 +11,7 @@ Filter users who made a booking in the last 30 days based on their `last_booking
 
 ### Implementation:
 1. Declare a global variable in `dbt_project.yml`:
-   [View code](https://github.com/marcoelumba/modeling/blob/5a8dc01784ac83e32ecb1a79b7433ed71c3e0528/monorepo/dbt_project.yml#L36)
+   [View code](https://github.com/marcoelumba/modeling/blob/monorepo/dbt_project.yml#L36)
     ```yaml
     vars:
       global_days_threshold: 30
@@ -19,7 +19,7 @@ Filter users who made a booking in the last 30 days based on their `last_booking
     This provides centralized configuration, making the threshold easy to manage and reusable across environments.
 
 2. Create a macro to calculate the date threshold dynamically:
-   [View code](https://github.com/marcoelumba/modeling/blob/5a8dc01784ac83e32ecb1a79b7433ed71c3e0528/monorepo/macros/generic_utils.sql#L11)
+   [View code](https://github.com/marcoelumba/modeling/blob/monorepo/macros/generic_utils.sql#L11)
     ```sql
     {% macro get_date_threshold(days_threshold = var('global_days_threshold', 30)) %}
         dateadd(day, {{ -days_threshold }}, current_date)
@@ -29,7 +29,7 @@ Filter users who made a booking in the last 30 days based on their `last_booking
 
 3. Call the macro in `active_users.sql`:
     - Default threshold:
-      [View code](https://github.com/marcoelumba/modeling/blob/5a8dc01784ac83e32ecb1a79b7433ed71c3e0528/monorepo/models/active_users.sql#L24)
+      [View code](https://github.com/marcoelumba/modeling/blob/monorepo/models/active_users.sql#L24)
       ```sql
       DATE(last_booking_date) >= {{ get_date_threshold() }}
       ```
@@ -62,7 +62,7 @@ Ensure `customer_id` is unique and not null in the final table.
 
 ### Implementation in `schema.yml`:
 Define an uniqueness test for customer_id column the simplist way by using "- unique" built-in test. 
-[View code](https://github.com/marcoelumba/modeling/blob/5a8dc01784ac83e32ecb1a79b7433ed71c3e0528/monorepo/models/schema.yml#L8)
+[View code](https://github.com/marcoelumba/modeling/blob/monorepo/models/schema.yml#L8)
 ```yaml
 models:
   - name: active_users
@@ -82,12 +82,12 @@ models:
 
 - **Using `ROW_NUMBER` with Filtering:**
   This approach is compatible with more databases:
-  [View code](https://github.com/marcoelumba/modeling/blob/5a8dc01784ac83e32ecb1a79b7433ed71c3e0528/monorepo/models/active_users.sql#L22)
+  [View code](https://github.com/marcoelumba/modeling/blob/monorepo/models/active_users.sql#L22)
   ```sql
   ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY last_booking_date DESC) AS row_num
   ```
   Then filter using:
-  [View code](https://github.com/marcoelumba/modeling/blob/5a8dc01784ac83e32ecb1a79b7433ed71c3e0528/monorepo/models/active_users.sql#L34)
+  [View code](https://github.com/marcoelumba/modeling/blob/monorepo/models/active_users.sql#L34)
   ```sql
   WHERE row_num = 1
   ```
@@ -103,12 +103,12 @@ Process only new or modified users during each dbt run for efficiency.
 
 ### Implementation:
 1. Inline call in `active_users.sql`:
-   [View code](https://github.com/marcoelumba/modeling/blob/5a8dc01784ac83e32ecb1a79b7433ed71c3e0528/monorepo/models/active_users.sql#L1)
+   [View code](https://github.com/marcoelumba/modeling/blob/monorepo/models/active_users.sql#L1)
     ```sql
     {% apply_incremental_config('customer_id', 'last_booking_date') %}
     ```
 2. Macro for reusability:
-   [View code](https://github.com/marcoelumba/modeling/blob/5a8dc01784ac83e32ecb1a79b7433ed71c3e0528/monorepo/macros/generic_utils.sql#L16)
+   [View code](https://github.com/marcoelumba/modeling/blob/monorepo/macros/generic_utils.sql#L16)
     ```sql
     {% macro apply_incremental_config(unique_key, partition_field, data_type='date') %}
       {{
@@ -125,7 +125,7 @@ Process only new or modified users during each dbt run for efficiency.
     {% endmacro %}
     ```
 3. Add a 3-day lookback for delayed data ingestion:
-   [View code](https://github.com/marcoelumba/modeling/blob/5a8dc01784ac83e32ecb1a79b7433ed71c3e0528/monorepo/models/active_users.sql#L11)
+   [View code](https://github.com/marcoelumba/modeling/blob/monorepo/models/active_users.sql#L11)
     ```sql
     {% if is_incremental() %}
     WHERE last_booking_date > (
@@ -167,12 +167,12 @@ Configure separate development and production environments.
 
 ### Implementation in `dbt_project.yml`:
 1. Dynamic schema for development:
-   [View code](https://github.com/marcoelumba/modeling/blob/5a8dc01784ac83e32ecb1a79b7433ed71c3e0528/monorepo/dbt_project.yml#L31)
+   [View code](https://github.com/marcoelumba/modeling/blob/monorepo/dbt_project.yml#L31)
     ```yaml
     +schema: "{{ get_dynamic_schema() }}"
     ```
 2. Macro for dynamic schema:
-   [View code](https://github.com/marcoelumba/modeling/blob/5a8dc01784ac83e32ecb1a79b7433ed71c3e0528/monorepo/macros/generic_utils.sql#L2)
+   [View code](https://github.com/marcoelumba/modeling/blob/monorepo/macros/generic_utils.sql#L2)
     ```sql
     {% macro get_dynamic_schema() %}
       {% if target.name == 'dev' %}
@@ -183,7 +183,7 @@ Configure separate development and production environments.
     {% endmacro %}
     ```
 3. Add `vars` to `profiles.yml`:
-   [View code](https://github.com/marcoelumba/modeling/blob/5a8dc01784ac83e32ecb1a79b7433ed71c3e0528/monorepo/profiles.yml#L10)
+   [View code](https://github.com/marcoelumba/modeling/blob/monorepo/profiles.yml#L10)
     ```yaml
     vars:
       user: "{{ env_var('USER', 'hw_user') }}"
