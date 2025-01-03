@@ -1,0 +1,18 @@
+default:
+ bigquery:
+  outputs:
+    dev:
+      type: bigquery  # Replace with your database type (e.g., snowflake, postgres)
+      project: hostelworld  # Development project
+      dataset: hw_dev  # Development schema
+      threads: 4
+      keyfile: /path/to/dev-keyfile.json  # Optional: Dev credentials
+      vars:
+          user: "{{ env_var('USER', 'default_user') }}"
+    prod:
+      type: bigquery
+      project: hostelworld  # Production project
+      dataset: hw_prod  # Production schema
+      threads: 8
+      keyfile: /path/to/prod-keyfile.json  # Optional: Prod credentials
+  target: dev  # Default target

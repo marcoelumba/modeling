@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: active_users
+    description: "List of active users with latest booking X days threshold from current_date."
+    +schema: staging
+    columns:
+      - name: customer_id
+        data_tests:
+          - not_null
+          - unique
+      - name: name
+        data_tests:
+          - not_null
+      - name: signup_date
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              max_value: "getdate()"
+      - name: last_booking_date
+        data_tests:
+          - not_null
