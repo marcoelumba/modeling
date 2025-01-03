@@ -3,7 +3,7 @@
   {% if target.name == 'dev' %}
     {{ var('user') }}  # Dynamic schema based on the user's name
   {% else %}
-    prod_schema  # Fixed schema for production
+    data  # Fixed schema for production
   {% endif %}
 {% endmacro %}
 
