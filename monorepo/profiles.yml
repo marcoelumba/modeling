@@ -6,7 +6,7 @@ default:
       account: pc.us.gcp
       database: dev_db
       warehouse: DEV_WAREHOUSE
-      schema: "{{ env_var('USER', 'default_user') }}_dev"
+      schema: "{{ env_var('USER', 'default_user') }}"
       authenticator: oauth
       oauth_client_id: [OAuth client id]
       oauth_client_secret: [OAuth client secret]
@@ -15,9 +15,9 @@ default:
     prod:
       type: snowflake
       account: pc.us.gcp
-      user: {{ env_var('SNOWFLAKE_USER') }}  
+      user: "{{ env_var('SNOWFLAKE_USER') }}"  
       private_key_path: /path/to/snowflake_key.p8
-      role: {{ env_var('SNOWFLAKE_PROD_ROLE') }}
+      role: "{{ env_var('SNOWFLAKE_PROD_ROLE') }}"
       database: prod_db
       schema: prod
       warehouse: PROD_WAREHOUSE
