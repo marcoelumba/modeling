@@ -1,18 +1,25 @@
 default:
- bigquery:
+ my_project:
   outputs:
     dev:
-      type: bigquery 
-      project: bigquery-project-id  # Development project
-      dataset: hw_dev  # Development schema
+      type: snowflake
+      account: pc.us.gcp
+      database: dev_db
+      warehouse: DEV_WAREHOUSE
+      schema: "{{ env_var('USER', 'default_user') }}_dev"
+      authenticator: oauth
+      oauth_client_id: [OAuth client id]
+      oauth_client_secret: [OAuth client secret]
+      token: [OAuth refresh token]
       threads: 4
-      method: oauth
-      vars:
-          user: "{{ env_var('USER', 'default_user') }}"
     prod:
-      type: bigquery
-      project: bigquery-project-id  # Production project
-      dataset: hw_prod  # Production schema
+      type: snowflake
+      account: pc.us.gcp
+      user: {{ env_var('SNOWFLAKE_USER') }}  
+      private_key_path: /path/to/snowflake_key.p8
+      role: {{ env_var('SNOWFLAKE_PROD_ROLE') }}
+      database: prod_db
+      schema: prod
+      warehouse: PROD_WAREHOUSE
       threads: 8
-      method: oauth
-  target: dev  # Default target
+  target: dev
