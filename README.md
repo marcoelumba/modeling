@@ -11,7 +11,7 @@ Filter users who made a booking in the last 30 days based on their `last_booking
 
 ### Implementation:
 1. Declare a global variable in `dbt_project.yml`:
-   [View code](https://github.com/marcoelumba/modeling/blob/6b85fb4c071069529e701009431195366b1a478f/monorepo/dbt_project.yml#L36)
+   [View code](https://github.com/marcoelumba/modeling/blob/6b85fb4c071069529e701009431195366b1a478f/monorepo/dbt_project.yml#L39)
     ```yaml
     vars:
       global_days_threshold: 30
