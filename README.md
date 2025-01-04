@@ -163,37 +163,36 @@ Process only new or modified users during each dbt run for efficiency.
 ## Task 4: Define Targets (Environments)
 
 ### Objective:
-Configure separate development and production environments.
+Configure separate target schema for development and production environments. In Snowflake, a database is a high-level construct that must be pre-created before running dbt, while schemas are hierarchical namespaces within a database and can be dynamically created or named (e.g., appending usernames for isolation). In contrast, BigQuery does not use databases but instead treats datasets as the top-level namespace, which dbt can dynamically create during runs if they do not exist.
+
+Additionally, in Snowflake, schemas provide a flexible way to organize data within a pre-existing database, offering the ability to tailor schema names dynamically per user or environment (e.g., marco_dev_staging). In BigQuery, the dataset is equivalent to a Snowflake schema but is always tied directly to a project, and the lack of hierarchical schema layers means datasets must serve as both the schema and top-level organizational unit.
 
 ### Implementation in `dbt_project.yml`:
 1. Dynamic schema for development:
    [View code](https://github.com/marcoelumba/modeling/blob/ab9c6b6778743d7253345351fb07ca1566f97076/monorepo/dbt_project.yml#L31)
     ```yaml
-    +schema: "{{ get_dynamic_schema() }}"
+    +schema: >
+        {%- if  target.name == "dev" -%} dev_staging
+        {%- elif target.name == "prod"  -%} staging
+        {%- endif -%}
     ```
-2. Macro for dynamic schema:
-   [View code](https://github.com/marcoelumba/modeling/blob/ab9c6b6778743d7253345351fb07ca1566f97076/monorepo/macros/generic_utils.sql#L2)
-    ```sql
-    {% macro get_dynamic_schema() %}
-      {% if target.name == 'dev' %}
-        {{ var('user') }}
-      {% else %}
-        prod_schema
-      {% endif %}
-    {% endmacro %}
-    ```
-3. Add `vars` to `profiles.yml`:
-   [View code](https://github.com/marcoelumba/modeling/blob/ab9c6b6778743d7253345351fb07ca1566f97076/monorepo/profiles.yml#L10)
+2. Add user environment for dynamic schema in development to `profiles.yml`:
+   [View code](https://github.com/marcoelumba/modeling/blob/ab9c6b6778743d7253345351fb07ca1566f97076/monorepo/profiles.yml#L9)
     ```yaml
-    vars:
-      user: "{{ env_var('USER', 'hw_user') }}"
+    dev:
+     schema: "{{ env_var('USER', 'default_user') }}"
+    ```
+   meanwhile in schema is static in `profiles.yml`:
+    ```yaml
+    prod:
+     schema: prod
     ```
     Ensure `USER` is set locally for development (e.g., `export USER=marco`).
 
 ### Recommended Practice:
 - Keep production configurations only in CI/CD pipelines for security.
 - Limit access to production configurations.
-- Set up a local user environment to have only a development target to avoid altering production during development and without reviews.
+- Set up a local user environment to have only a development target to avoid altering production data during development and pushing changes in production without reviews.
 
 ### Alternative Options Considered:
 - **Standard schema none dynamic:**
@@ -210,7 +209,7 @@ Configure separate development and production environments.
   Hardcoding user-specific schemas in the profile configuration for local development:
   ```yaml
   dev:
-   schema: "dev_marco"
+   schema: "marco"
   ```
   This approach lacks scalability and flexibility.
 
