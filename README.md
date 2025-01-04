@@ -182,7 +182,7 @@ Additionally, in Snowflake, schemas provide a flexible way to organize data with
     dev:
      schema: "{{ env_var('USER', 'default_user') }}"
     ```
-   meanwhile in schema is static in `profiles.yml`:
+   meanwhile in production schema is static in `profiles.yml`:
     ```yaml
     prod:
      schema: prod
